@@ -21,6 +21,7 @@ module.exports = class Reader extends Component {
     onError: PropTypes.func.isRequired,
     onLoad: PropTypes.func,
     onImageLoad: PropTypes.func,
+    onImageData: PropTypes.func,
     delay: PropTypes.oneOfType([PropTypes.number, PropTypes.bool]),
     facingMode: PropTypes.oneOf(['rear', 'front']),
     legacyMode: PropTypes.bool,
@@ -37,7 +38,7 @@ module.exports = class Reader extends Component {
 
   els = {};
 
-  constructor(props) {
+  constructor (props) {
     super(props)
 
     // Bind function to the class
@@ -53,7 +54,7 @@ module.exports = class Reader extends Component {
     this.handleWorkerMessage = this.handleWorkerMessage.bind(this)
     this.setRefFactory = this.setRefFactory.bind(this)
   }
-  componentDidMount() {
+  componentDidMount () {
     // Initiate web worker execute handler according to mode.
     this.worker = new Worker(URL.createObjectURL(workerBlob))
     this.worker.onmessage = this.handleWorkerMessage
@@ -64,7 +65,7 @@ module.exports = class Reader extends Component {
       this.initiateLegacyMode()
     }
   }
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps (nextProps) {
     // React according to change in props
     const changedProps = havePropsChanged(this.props, nextProps, propsKeys)
 
@@ -92,12 +93,12 @@ module.exports = class Reader extends Component {
       }
     }
   }
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate (nextProps) {
     // Only render when the `propsKeys` have changed.
     const changedProps = havePropsChanged(this.props, nextProps, propsKeys)
     return changedProps.length > 0
   }
-  componentWillUnmount() {
+  componentWillUnmount () {
     // Stop web-worker and clear the component
     if (this.worker) {
       this.worker.terminate()
@@ -105,7 +106,7 @@ module.exports = class Reader extends Component {
     }
     this.clearComponent()
   }
-  clearComponent() {
+  clearComponent () {
     // Remove all event listeners and variables
     if (this.timeout) {
       clearTimeout(this.timeout)
@@ -121,7 +122,7 @@ module.exports = class Reader extends Component {
       this.els.img.removeEventListener('load', this.check)
     }
   }
-  initiate(props = this.props) {
+  initiate (props = this.props) {
     const { onError, facingMode, chooseDeviceId } = props
 
     getDeviceId(facingMode, chooseDeviceId)
@@ -137,11 +138,11 @@ module.exports = class Reader extends Component {
       .then(this.handleVideo)
       .catch(onError)
   }
-  handleVideo(stream) {
+  handleVideo (stream) {
     const { preview } = this.els
 
     // Handle different browser implementations of MediaStreams as src
-    if(preview.srcObject !== undefined){
+    if (preview.srcObject !== undefined) {
       preview.srcObject = stream
     } else if (preview.mozSrcObject !== undefined) {
       preview.mozSrcObject = stream
@@ -162,12 +163,12 @@ module.exports = class Reader extends Component {
 
     preview.addEventListener('loadstart', this.handleLoadStart)
   }
-  handleLoadStart() {
+  handleLoadStart () {
     const { delay, onLoad } = this.props
     const preview = this.els.preview
     preview.play()
 
-    if(typeof onLoad == 'function') {
+    if (typeof onLoad == 'function') {
       onLoad()
     }
 
@@ -178,8 +179,8 @@ module.exports = class Reader extends Component {
     // Some browsers call loadstart continuously
     preview.removeEventListener('loadstart', this.handleLoadStart)
   }
-  check() {
-    const { legacyMode, maxImageSize, delay } = this.props
+  check () {
+    const { legacyMode, maxImageSize, delay, onImageData } = this.props
     const { preview, canvas, img } = this.els
 
     // Get image/video dimensions
@@ -191,7 +192,7 @@ module.exports = class Reader extends Component {
     if (legacyMode) {
       // Downscale image to `maxImageSize`
       const greatestSize = width > height ? width : height
-      if(greatestSize > maxImageSize){
+      if (greatestSize > maxImageSize) {
         const ratio = maxImageSize / greatestSize
         height = ratio * height
         width = ratio * width
@@ -209,6 +210,9 @@ module.exports = class Reader extends Component {
       ctx.drawImage(legacyMode ? img : preview, 0, 0, width, height)
 
       const imageData = ctx.getImageData(0, 0, width, height)
+      if (onImageData) {
+        onImageData(imageData)
+      }
       // Send data to web-worker
       this.worker.postMessage(imageData)
     } else {
@@ -216,7 +220,7 @@ module.exports = class Reader extends Component {
       this.timeout = setTimeout(this.check, delay)
     }
   }
-  handleWorkerMessage(e) {
+  handleWorkerMessage (e) {
     const { onScan, legacyMode, delay } = this.props
     const decoded = e.data
 
@@ -226,7 +230,7 @@ module.exports = class Reader extends Component {
       this.timeout = setTimeout(this.check, delay)
     }
   }
-  initiateLegacyMode() {
+  initiateLegacyMode () {
     this.reader = new FileReader()
     this.reader.addEventListener('load', this.handleReaderLoad)
     this.els.img.addEventListener('load', this.check, false)
@@ -234,28 +238,28 @@ module.exports = class Reader extends Component {
     // Reset componentDidUpdate
     this.componentDidUpdate = undefined
 
-    if(typeof this.props.onLoad == 'function') {
+    if (typeof this.props.onLoad == 'function') {
       this.props.onLoad()
     }
   }
-  handleInputChange(e) {
+  handleInputChange (e) {
     const selectedImg = e.target.files[0]
     this.reader.readAsDataURL(selectedImg)
   }
-  handleReaderLoad(e) {
+  handleReaderLoad (e) {
     // Set selected image blob as img source
     this.els.img.src = e.target.result
   }
-  openImageDialog() {
+  openImageDialog () {
     // Function to be executed by parent in user action context to trigger img file uploader
     this.els.input.click()
   }
-  setRefFactory(key) {
+  setRefFactory (key) {
     return element => {
       this.els[key] = element
     }
   }
-  render() {
+  render () {
     const { style, className, onImageLoad, legacyMode } = this.props
 
     const hiddenStyle = { display: 'none' }
