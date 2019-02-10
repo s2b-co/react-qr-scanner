@@ -8,7 +8,7 @@ const havePropsChanged = require('./havePropsChanged')
 require('webrtc-adapter')
 
 // Inline worker.js as a string value of workerBlob.
-const workerBlob = new Blob([__inline('../lib/worker.js')], {
+const workerBlob = new Blob([__inline('../lib/worker.js')], { // eslint-disable-line no-undef
   type: 'application/javascript',
 })
 
@@ -65,7 +65,7 @@ module.exports = class Reader extends Component {
       this.initiateLegacyMode()
     }
   }
-  componentWillReceiveProps (nextProps) {
+  componentWillReceiveProps (nextProps) { // eslint-disable-line react/no-deprecated
     // React according to change in props
     const changedProps = havePropsChanged(this.props, nextProps, propsKeys)
 
@@ -130,9 +130,10 @@ module.exports = class Reader extends Component {
         return navigator.mediaDevices.getUserMedia({
           video: {
             deviceId,
-            width: { min: 360, ideal: 1280, max: 1920 },
-            height: { min: 240, ideal: 720, max: 1080 },
-          },
+            // width: { min: 360, ideal: 1280, max: 1920 },
+            // height: { min: 240, ideal: 720, max: 1080 },
+            facingMode: 'environment'
+          }
         })
       })
       .then(this.handleVideo)
@@ -212,7 +213,7 @@ module.exports = class Reader extends Component {
       const imageData = ctx.getImageData(0, 0, width, height)
       if (onImageData) {
         onImageData(imageData)
-      }
+      }      
       // Send data to web-worker
       this.worker.postMessage(imageData)
     } else {
@@ -244,7 +245,9 @@ module.exports = class Reader extends Component {
   }
   handleInputChange (e) {
     const selectedImg = e.target.files[0]
-    this.reader.readAsDataURL(selectedImg)
+    if (selectedImg) {
+      this.reader.readAsDataURL(selectedImg)
+    }
   }
   handleReaderLoad (e) {
     // Set selected image blob as img source
@@ -277,6 +280,7 @@ module.exports = class Reader extends Component {
               style={hiddenStyle}
               type="file"
               accept="image/*"
+              capture="environment"
               ref={this.setRefFactory('input')}
               onChange={this.handleInputChange}
             />
