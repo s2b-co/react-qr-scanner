@@ -27,8 +27,8 @@ module.exports = function getDeviceId(facingMode, chooseDeviceId = defaultDevice
         return
       } else if (videoDevices.length == 1) {
         // Only 1 video device available thus stop here
-        resolve(devices[0].deviceId)
-        return
+        // resolve(devices[0].deviceId)
+        // return
       }
 
       const pattern = facingMode == 'rear'
