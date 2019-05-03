@@ -64,9 +64,11 @@ class Test extends Component {
 
 **onScan**
 
-Type: `function`, Required, Argument: `result`
+Type: `function`, Required, Argument: `result`<br>
+`result.decoded` is the actual string of QR code<br>
+`result.src` is base64 image taken when QR code has been scannedk
 
-Scan event handler. Called every scan with the decoded value or `null` if no QR code was found.
+Scan event handler. Called every scan with the result object or `null` if no QR code was found.
 
 **onError**
 
