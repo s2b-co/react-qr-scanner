@@ -211,6 +211,7 @@ module.exports = class Reader extends Component {
       ctx.drawImage(legacyMode ? img : preview, 0, 0, width, height)
 
       const imageData = ctx.getImageData(0, 0, width, height)
+
       if (onImageData) {
         onImageData(imageData)
       }
@@ -224,9 +225,9 @@ module.exports = class Reader extends Component {
   }
   handleWorkerMessage (e) {
     const { onScan, legacyMode, delay } = this.props
-    const decoded = e.data
+    const { decoded, src } = e.data
 
-    onScan((decoded && decoded.data) || null)
+    onScan((decoded && decoded.data && { decoded: decoded.data, src }) || null)
 
     if (!legacyMode && typeof delay == 'number' && this.worker) {
       this.timeout = setTimeout(this.check, delay)
