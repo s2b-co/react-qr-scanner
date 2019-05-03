@@ -213,9 +213,10 @@ module.exports = class Reader extends Component {
       const imageData = ctx.getImageData(0, 0, width, height)
       if (onImageData) {
         onImageData(imageData)
-      }      
+      }
+      const src = canvas.toDataURL('image/jpeg', 0.5)
       // Send data to web-worker
-      this.worker.postMessage(imageData)
+      this.worker.postMessage({ imageData, src })
     } else {
       // Preview not ready -> check later
       this.timeout = setTimeout(this.check, delay)
