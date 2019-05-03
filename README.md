@@ -13,7 +13,7 @@ Thanks to initial repo https://github.com/JodusNodus/react-qr-reader
 - In Firefox a prompt will be shown to the user asking which camera to use, so `facingMode` will not affect it.
 
 ## Install
-`npm install --save react-qr-scanner`
+`npm install --save @s2b/react-qr-scanner`
 
 ## Example
 
